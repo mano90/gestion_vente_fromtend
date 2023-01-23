@@ -1,0 +1,171 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Stock'" [icon]="'fa-linode'"></app-page-header>
+    <div class="container-fluid">
+        <div class="row"></div>
+        <div class="col-md-12">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Recherche avancée</div>
+
+                <div class="card-body">
+                    <form #formSearch="ngForm">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Reference du produit</label>
+                                        <mat-form-field>
+                                            <mat-select>
+                                                <mat-select-filter
+                                                    [placeholder]="'Filtre'"
+                                                    [displayMember]="'reference'"
+                                                    [array]="listeReference"
+                                                    (filteredReturn)="referenceFiltre = $event"
+                                                ></mat-select-filter>
+                                                <mat-option
+                                                    *ngFor="let item of referenceFiltre"
+                                                    (click)="pasteNomProduit(item.reference, item.nom)"
+                                                    [value]="item"
+                                                >
+                                                    {{ item.reference }}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                                <input
+                                    type="hidden"
+                                    name="referenceSearch"
+                                    #referenceSearch="ngModel"
+                                    [(ngModel)]="search.referenceSearch"
+                                />
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Nom du produit</label>
+                                        <input
+                                            type="text"
+                                            name="nomSearch"
+                                            #nomSearch="ngModel"
+                                            [(ngModel)]="search.nomSearch"
+                                            class="form-control"
+                                            readonly
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Date début d'entrée</label>
+                                        <input
+                                            type="date"
+                                            #debutSearch="ngModel"
+                                            [(ngModel)]="search.debutSearch"
+                                            name="debutSearch"
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Date fin d'entrée</label>
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            name="finSearch"
+                                            #finSearch="ngModel"
+                                            [(ngModel)]="search.finSearch"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-3"></div>
+
+                                <button type="submit" (click)="advanceSearch()" class="btn btn-primary btn-lg col-md-7">
+                                    Rechercher
+                                </button>
+                                <div class="col-md-3"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <br /><br /><br />
+
+        <mat-form-field appearance="standard">
+            <mat-label>Filtre</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input />
+        </mat-form-field>
+
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>Id</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.id }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="nom">
+                <th mat-header-cell *matHeaderCellDef>Nom</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.nom }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="dateEntree">
+                <th mat-header-cell *matHeaderCellDef>Date d'entrée</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.dateEntree | date: 'dd-MM-y' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantite">
+                <th mat-header-cell *matHeaderCellDef>Quantité</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.quantite | formatNumber }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="datePeremption">
+                <th mat-header-cell *matHeaderCellDef>Date de péremption</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.datePeremption | date: 'dd-MM-y' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button
+                        *ngIf="element.quantite == element.reste"
+                        (click)="deleteStockTrue(element.id)"
+                        class="btn btn-danger"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Supprimer"
+                    >
+                        <i class="fa fa-trash text-white"></i>
+                    </button>
+                    <button
+                        *ngIf="element.quantite != element.reste"
+                        (click)="deleteStock(element.id)"
+                        class="btn btn-danger"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Supprimer"
+                    >
+                        <i class="fa fa-trash text-white"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="4">Pas de valeur trouvée pour "{{ input.value }}"</td>
+            </tr>
+        </table>
+        <mat-paginator class="mat-elevation-z8" [pageSizeOptions]="[10, 20, 50, 100]"></mat-paginator>
+    </div>
+</div>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>

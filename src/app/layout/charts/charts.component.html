@@ -1,0 +1,317 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Charts'" [icon]="'fa-bar-chart-o'"></app-page-header>
+    <div class="row">
+        <div class="col col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Bilan mensuel des revenus (en Ariary)
+                </div>
+                <div class="card-body">
+                    <canvas
+                        (chartClick)="chartClicked($event)"
+                        (chartHover)="chartHovered($event)"
+                        [chartType]="barChartType"
+                        [datasets]="recetteData"
+                        [labels]="months"
+                        [legend]="barChartLegend"
+                        [options]="barChartOptions"
+                        baseChart
+                    >
+                    </canvas>
+                </div>
+                <div class="card-footer">
+                    <button (click)="open(modalYearRecette)" class="btn btn-info btn-sm">
+                        Choisir l'annéee
+                    </button>
+                    <button class="btn btn-success btn-sm" (click)="exportRecette()">
+                        Exporter sous excel
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Bilan mensuel des ventes (en quantité)
+                </div>
+                <div class="card-body">
+                    <canvas
+                        (chartClick)="chartClicked($event)"
+                        (chartHover)="chartHovered($event)"
+                        [chartType]="barChartType"
+                        [datasets]="bilanProduitvendu"
+                        [labels]="months"
+                        [legend]="barChartLegend"
+                        [options]="barChartOptions"
+                        baseChart
+                    >
+                    </canvas>
+                </div>
+                <div class="card-footer">
+                    <button (click)="open(modalYearProduit)" class="btn btn-info btn-sm">
+                        Choisir l'annéee
+                    </button>
+                    <button class="btn btn-success btn-sm" (click)="exportSelled()">
+                        Exporter sous excel
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Pourcentage de vente des produits
+                </div>
+                <div class="card-body">
+                    <canvas
+                        (chartClick)="chartClicked($event)"
+                        (chartHover)="chartHovered($event)"
+                        [colors]="pieChartColors"
+                        [chartType]="pieChartType"
+                        [data]="mostSellDatas"
+                        [labels]="mostSellLabels"
+                        baseChart
+                        height="150px"
+                    >
+                    </canvas>
+                </div>
+                <div class="card-footer">
+                    <button (click)="selectBetweenDates(modalTwoDates)" class="btn btn-info btn-sm">
+                        Choisir la période
+                    </button>
+                    <button class="btn btn-success btn-sm" (click)="exportVente()">
+                        Exporter sous excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Bilan mensuel des entrées
+                </div>
+                <div class="card-body">
+                    <canvas
+                        (chartClick)="chartClicked($event)"
+                        (chartHover)="chartHovered($event)"
+                        [chartType]="barChartType"
+                        [datasets]="bilanEntreeProduit"
+                        [labels]="months"
+                        [legend]="barChartLegend"
+                        [options]="barChartOptions"
+                        baseChart
+                    >
+                    </canvas>
+                </div>
+                <div class="card-footer">
+                    <button (click)="open(modalYearEntree)" class="btn btn-info btn-sm">
+                        Choisir l'annéee
+                    </button>
+                    <button class="btn btn-success btn-sm" (click)="exportEntry()">
+                        Exporter sous excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Bilan mensuel des produits périmés
+                </div>
+                <div class="card-body">
+                    <canvas
+                        (chartClick)="chartClicked($event)"
+                        (chartHover)="chartHovered($event)"
+                        [chartType]="barChartType"
+                        [datasets]="bilanPerimeProduit"
+                        [labels]="months"
+                        [legend]="barChartLegend"
+                        [options]="barChartOptions"
+                        baseChart
+                    >
+                    </canvas>
+                </div>
+                <div class="card-footer">
+                    <button (click)="open(modalYearPerime)" class="btn btn-info btn-sm">
+                        Choisir l'annéee
+                    </button>
+                    <button class="btn btn-success btn-sm" (click)="exportPerime()">
+                        Exporter sous excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-template #modalYearRecette let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Tapez une année</h4>
+            <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input
+                type="number"
+                [ngClass]="{ 'is-invalid': lengthYear(inputYearRecette) == false }"
+                class="form-control"
+                placeholder="YYYY"
+                minlength="4"
+                maxlength="4"
+                [(ngModel)]="inputYearRecette"
+                name="inputYearRecette"
+            />
+        </div>
+        <div class="modal-footer">
+            <button
+                type="button"
+                (click)="modal.dismiss(); anotherYearPerime()"
+                [disabled]="lengthYear(inputYearRecette) == false"
+                class="btn btn-success"
+            >
+                Valider
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template #modalYearProduit let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Tapez une année</h4>
+            <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input
+                type="number"
+                [ngClass]="{ 'is-invalid': lengthYear(inputYearProduit) == false }"
+                class="form-control"
+                placeholder="YYYY"
+                minlength="4"
+                maxlength="4"
+                [(ngModel)]="inputYearProduit"
+                name="inputYearProduit"
+            />
+        </div>
+        <div class="modal-footer">
+            <button
+                type="button"
+                (click)="modal.dismiss(); anotherYearProduit()"
+                [disabled]="lengthYear(inputYearProduit) == false"
+                class="btn btn-success"
+            >
+                Valider
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template #modalYearEntree let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Tapez une année</h4>
+            <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input
+                type="number"
+                [ngClass]="{ 'is-invalid': lengthYear(inputYearEntry) == false }"
+                class="form-control"
+                placeholder="YYYY"
+                minlength="4"
+                maxlength="4"
+                [(ngModel)]="inputYearEntry"
+                name="inputYearEntry"
+            />
+        </div>
+        <div class="modal-footer">
+            <button
+                type="button"
+                (click)="modal.dismiss(); anotherYearEntry()"
+                [disabled]="lengthYear(inputYearEntry) == false"
+                class="btn btn-success"
+            >
+                Valider
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template #modalTwoDates let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Recherche entre deux dates</h4>
+            <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <form #formYearRecette="ngForm">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="">Date début</label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                [(ngModel)]="dateDebutMostSell"
+                                name="dateDebutMostSell"
+                            />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="">Date Fin</label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                [(ngModel)]="dateFinMostSell"
+                                name="dateFinMostSell"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    (click)="modal.dismiss(); mostSellSetData()"
+                    [disabled]="!dateDebutMostSell || !dateFinMostSell"
+                    class="btn btn-success"
+                >
+                    Valider
+                </button>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template #modalYearPerime let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Tapez une année</h4>
+            <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input
+                type="number"
+                [ngClass]="{ 'is-invalid': lengthYear(inputYearPerime) == false }"
+                class="form-control"
+                placeholder="YYYY"
+                minlength="4"
+                maxlength="4"
+                [(ngModel)]="inputYearPerime"
+                name="inputYearPerime"
+            />
+        </div>
+        <div class="modal-footer">
+            <button
+                type="button"
+                (click)="modal.dismiss(); anotherYearPerime()"
+                [disabled]="lengthYear(inputYearPerime) == false"
+                class="btn btn-success"
+            >
+                Valider
+            </button>
+        </div>
+    </ng-template>
+</div>

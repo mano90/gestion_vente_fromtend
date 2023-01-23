@@ -1,0 +1,220 @@
+<nav [ngClass]="{ sidebarPushRight: isActive, collapsed: collapsed }" class="sidebar">
+    <div class="list-group">
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/charts']" class="list-group-item">
+            <i class="fa fa-fw fa-bar-chart-o"></i>&nbsp;
+            <span>Bilans</span>
+        </a>
+
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/produit']" class="list-group-item">
+            <i class="fa fa-server"></i>&nbsp;
+            <span>Produits</span>
+        </a>
+
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/client']" class="list-group-item">
+            <i class="fa fa-address-card-o"></i>&nbsp;
+            <span>Client</span>
+        </a>
+
+        <!-- <a [routerLinkActive]="['router-link-active']" [routerLink]="['/achat']" class="list-group-item"> -->
+        <a (click)="listeAchat()" class="list-group-item">
+            <i class="fa fa-shopping-cart"></i>&nbsp;
+            <span>Achat</span>
+        </a>
+
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/stock']" class="list-group-item">
+            <i class="fa fa-linode"></i>&nbsp;
+            <span>Stock</span>
+        </a>
+
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/perime']" class="list-group-item">
+            <i class="fa fa-chain-broken"></i>&nbsp;
+            <span>Produits périmés</span>
+        </a>
+
+        <a [routerLinkActive]="['router-link-active']" [routerLink]="['/facture']" class="list-group-item">
+            <i class="fa fa-print"></i>&nbsp;
+            <span>Factures</span>
+        </a>
+
+        <div class="header-fields">
+            <a (click)="rltAndLtr()" class="list-group-item">
+                <span><i class="fa fa-arrows-h"></i>&nbsp; <==></span>
+            </a>
+            <div class="nested-menu">
+                <a (click)="addExpandClass('profile')" class="list-group-item">
+                    <span><i class="fa fa-user"></i>&nbsp; {{ identifiant }}</span>
+                </a>
+                <li [class.expand]="showMenu === 'profile'" class="nested">
+                    <ul class="submenu">
+                        <li>
+                            <a (click)="onLoggedout()" [routerLink]="['/login']">
+                                <span><i class="fa fa-fw fa-power-off"></i> Déconnexion</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </div>
+        </div>
+    </div>
+    <div (click)="toggleCollapsed()" [ngClass]="{ collapsed: collapsed }" class="toggle-button">
+        <i class="fa fa-fw fa-angle-double-{{ collapsed ? 'right' : 'left' }}"></i>&nbsp;
+        <span>Réduire</span>
+    </div>
+</nav>
+
+<ng-template #typeAchat let-modal>
+    <div class="modal-header">
+        <h1>
+            Type d'achat
+        </h1>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="container-fluid">
+            <div class="row">
+                <a (click)="anonymeRoute(modal.dismiss)" class="btn btn-primary col-md-12 text-white">Anonyme</a><br />
+                <div class="col-md-12"></div>
+                <br />
+                <a (click)="modalListeClient(modal.dismiss)" class="btn btn-secondary col-md-12 text-white"
+                    >Client existant</a
+                ><br /><br />
+                <div class="col-md-12"></div>
+                <br />
+                <a (click)="modalNewClient(modal.dismiss)" class="btn btn-success col-md-12 text-white"
+                    >Nouveau Client</a
+                ><br /><br />
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #typeAchatClient let-modal>
+    <div class="modal-header">
+        <h1>
+            Choisissez le client
+        </h1>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="container-fluid">
+            <form #formSearch="ngForm">
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label for="">Identifiant</label>
+                        <input
+                            type="text"
+                            #id="ngModel"
+                            [(ngModel)]="search.id"
+                            name="id"
+                            class="form-control"
+                            readonly
+                            required
+                        />
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="search-text"
+                                aria-describedby="search-text"
+                                [(ngModel)]="search.nom"
+                                name="nom"
+                                placeholder="Cherchez le nom"
+                                (click)="showUl()"
+                                (keyup)="showUlTwo()"
+                                #nom="ngModel"
+                            />
+                        </div>
+                        <ul *ngIf="listeShow === true" class="list-group list-group-flush customList">
+                            <ng-container *ngFor="let item of characters | appFilter: search.nom">
+                                <li class="list-group-item">
+                                    <div (click)="showList(item)">{{ item.nom }} {{ item.prenoms }}</div>
+                                </li>
+                            </ng-container>
+                        </ul>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="">Adresse</label>
+                        <input
+                            type="text"
+                            #adresse="ngModel"
+                            [(ngModel)]="search.adresse"
+                            name="adresse"
+                            class="form-control"
+                            readonly
+                        />
+                    </div>
+                    <div class="form-group col-md-12">
+                        <button
+                            class="btn btn-success"
+                            (click)="submitExistingClient(); modal.dismiss()"
+                            [disabled]="formSearch.invalid"
+                        >
+                            Valider
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #typeAchatNewClient let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Nouveau</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAjout="ngForm">
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="newClientSide.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prenoms">Prenoms</label>
+                <input
+                    #prenoms="ngModel"
+                    name="prenoms"
+                    type="text"
+                    [(ngModel)]="newClientSide.prenoms"
+                    class="form-control"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <input name="adresse" #adresse="ngModel" [(ngModel)]="newClientSide.adresse" class="form-control" />
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formAjout.invalid"
+            class="btn btn-outline-dark"
+            (click)="addClient(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>

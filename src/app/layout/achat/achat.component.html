@@ -1,0 +1,460 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Achat'" [icon]="'fa-shopping-cart'"></app-page-header>
+    <div class="container-fluid">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <input type="hidden" id="hfRowIndex" value="" />
+                <table class="table table-bordered col-md-8" cellspacing="0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>
+                                {{ myDate | date: 'EEEE d MMMM y':undefined:'fr' }}
+                            </td>
+                            <ng-container *ngIf="client.id; else clientAnonyme">
+                                <td>
+                                    <b>Nom:</b> {{ client.nom }} <br />
+                                    <ng-container *ngIf="client.adresse">
+                                        <b>Adresse:</b> {{ client.adresse }}
+                                    </ng-container>
+                                </td>
+                            </ng-container>
+                            <ng-template #clientAnonyme>
+                                <td>
+                                    Anonyme
+                                </td>
+                            </ng-template>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="container-fluid" *ngIf="slideGraphique == false"></div> -->
+    <div class="container-fluid">
+        <h1>
+            Liste des courses
+        </h1>
+
+        <div class="card shadow mb-4">
+            <div
+                *ngIf="slideGraphique == false"
+                class="card-header bg-info"
+                (click)="open(modalPanier); resetListePanier(); resetSync()"
+            >
+                <h2 class="m-0 font-weight-bold text-white">Ajouter au panier <i class="fa fa-shopping-basket"></i></h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0" id="tableCart">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Nom</th>
+                                <th>Nombre</th>
+                                <th>Mode d'achat</th>
+                                <th>Prix unitaire</th>
+                                <th>Total à payer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <ng-container *ngFor="let element of listePanier; let index = index">
+                                <tr>
+                                    <td>
+                                        {{ element.reference }}
+                                    </td>
+                                    <td>
+                                        {{ element.nom }}
+                                    </td>
+
+                                    <td>
+                                        {{ element.nombre | formatNumber }}
+                                    </td>
+                                    <td>
+                                        <span [ngSwitch]="element.typeAchat">
+                                            <p *ngSwitchCase="0">
+                                                Par item
+                                            </p>
+                                            <p *ngSwitchCase="1">
+                                                Par paquet
+                                            </p>
+                                            <p *ngSwitchCase="2">
+                                                Par carton
+                                            </p>
+                                            <p *ngSwitchDefault></p>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ element.prixUnitaire | formatMoney }}
+                                    </td>
+
+                                    <td>
+                                        {{ element.total | formatMoney }}
+                                    </td>
+                                    <td>
+                                        <button (click)="getIndex(index)" class="btn btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                    <div>
+                        Total à payer: {{ totalPaid | formatMoney }}
+                        <ng-container *ngIf="totalPaid > 0">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <button (click)="addAchat()" style="float: right;" class="btn btn-primary btn-lg">
+                                Payer <i class="fa fa-long-arrow-right arrow1" aria-hidden="true"></i>
+                            </button>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="slideGraphique == true">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12 col-md-12">
+                    <mat-form-field appearance="standard">
+                        <mat-label>Filtre</mat-label>
+                        <input
+                            matInput
+                            [(ngModel)]="filterGraphique"
+                            name="filterGraphique"
+                            placeholder="Ex. ium"
+                            #input
+                        />
+                    </mat-form-field>
+                </div>
+                <ng-container *ngFor="let element of arrayProducts | filterGraphiqueCustom: filterGraphique">
+                    <div class="col-12 col-sm-3 col-lg-2 col-md-2 col-xl-2">
+                        <span class="box box-1" (click)="showButtons(element)">
+                            <span class="cover">
+                                <img [src]="element.link" width="150px" height="150px" />
+                            </span>
+                            <div>
+                                Reference:
+                                <br />
+                                {{ element.reference }} <br />
+                                Nom: <br />
+                                {{ element.nom }} <br />
+                            </div>
+                        </span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #modalPanier let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">
+            Nouveau
+            <span style="position: absolute; right: 60px;"> {{ indexCache }} / {{ listeCachePanier.length }} </span>
+        </h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAddPanier="ngForm">
+            <button *ngIf="!synchronised" type="button" class="btn btn-success" (click)="getDataFromDb()">
+                Synchroniser avec le téléphone
+                <i class="fa fa-refresh fa-spin"></i>
+            </button>
+            <div class="form-group">
+                <label for="">Reference</label>
+                <input
+                    type="text"
+                    (click)="showUl()"
+                    class="form-control"
+                    [(ngModel)]="panier.reference"
+                    name="reference"
+                    #reference="ngModel"
+                    (keyup)="showUl2()"
+                    required
+                />
+                <ul *ngIf="listeShow === true" class="list-group list-group-flush customList">
+                    <ng-container *ngFor="let item of listeReference | filterProduit: panier.reference">
+                        <li class="list-group-item">
+                            <div (click)="getInfo(item.reference)">{{ item.reference }}</div>
+                        </li>
+                    </ng-container>
+                </ul>
+            </div>
+            <div class="form-group">
+                <label for="">Nom du produit</label>
+                <input type="text" [(ngModel)]="panier.nom" name="nom" #nom="ngModel" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="">Type d'achat</label>
+                <select
+                    name="typeAchat"
+                    #typeAchat="ngModel"
+                    [(ngModel)]="panier.typeAchat"
+                    class="form-control"
+                    required
+                    (change)="calculateTotal()"
+                >
+                    <option [value]="0">Par item</option>
+                    <option [value]="1">Par paquet</option>
+                    <option [value]="2">Par carton</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nombre">Quantité</label>
+                <input
+                    type="number"
+                    pattern="[0-9]+"
+                    name="nombre"
+                    #nombre="ngModel"
+                    [(ngModel)]="panier.nombre"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid':
+                            (nombre.touched && nombre.errors?.pattern) ||
+                            (nombre.touched && panier.nombre && panier.stock && panier.nombre > panier.stock)
+                    }"
+                    (keyup)="calculateTotal()"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="nombre.touched && nombre.errors?.pattern">
+                    La quantité doit être positif
+                </mat-error>
+                <mat-error
+                    class="error-message"
+                    *ngIf="nombre.touched && panier.nombre && panier.stock && panier.quantite > panier.stock"
+                >
+                    Quantité supérieur à la quantité disponible
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="">En stock</label>
+                <input
+                    type="text"
+                    [(ngModel)]="panier.stock"
+                    name="stock"
+                    #stock="ngModel"
+                    class="form-control"
+                    readonly
+                    required
+                />
+            </div>
+            <div class="form-group">
+                <label for="">Prix unitaire</label>
+                <input
+                    type="text"
+                    [(ngModel)]="panier.prixUnitaire"
+                    name="prixUnitaire"
+                    #prixUnitaire="ngModel"
+                    class="form-control"
+                    readonly
+                    required
+                />
+            </div>
+            <div class="form-group">
+                <label for="">Total à payer</label>
+                <div class="form-control disabled" disabled>
+                    <ng-container *ngIf="panier.total">
+                        {{ panier.total | formatMoney }}
+                    </ng-container>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger" *ngIf="synchronised" (click)="removeItem(modal.dismiss)">
+            Enlever cet élément
+        </button>
+        <button
+            class="btn btn-primary"
+            *ngIf="synchronised && listeCachePanier.length > indexCache"
+            (click)="nextCache()"
+            [disabled]="
+                formAddPanier.invalid || errorQuantite == true || !panier.total || panier.quantite > panier.stock
+            "
+        >
+            Suivant
+        </button>
+
+        <button
+            class="btn btn-success"
+            *ngIf="synchronised && listeCachePanier.length == indexCache"
+            (click)="finishSync(modal.dismiss)"
+            [disabled]="
+                formAddPanier.invalid || errorQuantite == true || !panier.total || panier.quantite > panier.stock
+            "
+        >
+            Terminer
+        </button>
+        <button
+            *ngIf="!synchronised"
+            (click)="addToPanier()"
+            class="btn btn-success"
+            [disabled]="
+                formAddPanier.invalid || errorQuantite == true || !panier.total || panier.quantite > panier.stock
+            "
+            class="btn btn-success"
+        >
+            Ajouter
+        </button>
+    </div>
+</ng-template>
+<ng-template #buttonsShow let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">
+            Nouveau
+        </h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAddPanierGraphique="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="customGraphicItems.reference"
+                    name="reference"
+                    #reference="ngModel"
+                    readonly
+                />
+            </div>
+            <div class="form-group">
+                <label for="">Nom du produit</label>
+                <input
+                    type="text"
+                    [(ngModel)]="customGraphicItems.nom"
+                    name="nom"
+                    #nom="ngModel"
+                    class="form-control"
+                    readonly
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="">Type d'achat</label>
+                <select
+                    name="typeAchat"
+                    #typeAchat="ngModel"
+                    [(ngModel)]="customGraphicItems.typeAchat"
+                    class="form-control"
+                    required
+                    (change)="calculateTotalGraphique()"
+                >
+                    <option [value]="0">Par item</option>
+                    <option [value]="1">Par paquet</option>
+                    <option [value]="2">Par carton</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nombre">Quantité</label>
+                <input
+                    type="number"
+                    pattern="[0-9]+"
+                    name="nombre"
+                    #nombre="ngModel"
+                    [(ngModel)]="customGraphicItems.nombre"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid':
+                            (nombre.touched && nombre.errors?.pattern) ||
+                            (nombre.touched &&
+                                customGraphicItems.nombre &&
+                                customGraphicItems.stock &&
+                                customGraphicItems.nombre > customGraphicItems.stock)
+                    }"
+                    (keyup)="calculateTotalGraphique()"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="nombre.touched && nombre.errors?.pattern">
+                    La quantité doit être positif
+                </mat-error>
+                <mat-error
+                    class="error-message"
+                    *ngIf="
+                        nombre.touched &&
+                        customGraphicItems.nombre &&
+                        customGraphicItems.stock &&
+                        customGraphicItems.quantite > customGraphicItems.stock
+                    "
+                >
+                    Quantité supérieur à la quantité disponible
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="">En stock</label>
+                <input
+                    type="text"
+                    [(ngModel)]="customGraphicItems.stock"
+                    name="stock"
+                    #stock="ngModel"
+                    class="form-control"
+                    readonly
+                    required
+                />
+            </div>
+            <div class="form-group">
+                <label for="">Prix unitaire</label>
+                <input
+                    type="text"
+                    [(ngModel)]="customGraphicItems.prixUnitaire"
+                    name="prixUnitaire"
+                    #prixUnitaire="ngModel"
+                    class="form-control"
+                    readonly
+                    required
+                />
+            </div>
+            <div class="form-group">
+                <label for="">Total à payer</label>
+                <div class="form-control disabled" disabled>
+                    <ng-container *ngIf="customGraphicItems.total">
+                        {{ customGraphicItems.total | formatMoney }}
+                    </ng-container>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            *ngIf="!synchronised"
+            (click)="addToPanierGraphique(modal.dismiss)"
+            class="btn btn-success"
+            [disabled]="
+                formAddPanierGraphique.invalid ||
+                errorQuantiteGraphique == true ||
+                !customGraphicItems.total ||
+                customGraphicItems.quantite > customGraphicItems.stock
+            "
+            class="btn btn-success"
+        >
+            Ajouter
+        </button>
+    </div>
+</ng-template>
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>

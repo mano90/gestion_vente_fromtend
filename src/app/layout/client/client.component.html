@@ -1,0 +1,211 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Client'" [icon]="'fa-address-card-o'"></app-page-header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <button class="col-md-12 btn btn-lg btn-outline-success" (click)="open(modalAjout)">Nouveau</button>
+        </div>
+
+        <mat-form-field appearance="standard">
+            <mat-label>Filtre</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input />
+        </mat-form-field>
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>Id</th>
+                <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nom">
+                <th mat-header-cell *matHeaderCellDef>Nom</th>
+                <td mat-cell *matCellDef="let element">{{ element.nom }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="prenoms">
+                <th mat-header-cell *matHeaderCellDef>Prenoms</th>
+                <td mat-cell *matCellDef="let element">{{ element.prenoms }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="adresse">
+                <th mat-header-cell *matHeaderCellDef>Adresse</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.adresse }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button
+                        (click)="getDataToUpdate(element.id, element.nom, element.prenoms, element.adresse)"
+                        class="btn btn-warning"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Modifier"
+                    >
+                        <i class="fa fa-edit text-white"></i>
+                    </button>
+                    &nbsp;&nbsp;
+
+                    <button
+                        (click)="deleteClient(element.id)"
+                        class="btn btn-danger"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Supprimer"
+                    >
+                        <i class="fa fa-trash text-white"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="4">Pas de valeur trouvée pour "{{ input.value }}"</td>
+            </tr>
+        </table>
+        <mat-paginator class="mat-elevation-z8" [pageSizeOptions]="[10, 20, 50, 100]"></mat-paginator>
+    </div>
+</div>
+<ng-template #modalAjout let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Nouveau</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAjout="ngForm">
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="newClient.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prenoms">Prenoms</label>
+                <input
+                    #prenoms="ngModel"
+                    name="prenoms"
+                    type="text"
+                    [(ngModel)]="newClient.prenoms"
+                    class="form-control"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <input name="adresse" #adresse="ngModel" [(ngModel)]="newClient.adresse" class="form-control" />
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formAjout.invalid"
+            class="btn btn-outline-dark"
+            (click)="addClient(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #modalEdit let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Modifier</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formEdit="ngForm">
+            <div class="form-group">
+                <label for="id">Id*</label>
+                <input
+                    name="id"
+                    #id="ngModel"
+                    [(ngModel)]="updateClient.id"
+                    type="text"
+                    class="form-control"
+                    readonly
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="updateClient.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prenoms">Prenoms*</label>
+                <input
+                    #prenoms="ngModel"
+                    [ngClass]="{
+                        'is-invalid': prenoms.touched && prenoms.errors?.required
+                    }"
+                    name="prenoms"
+                    type="text"
+                    [(ngModel)]="updateClient.prenoms"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="prenoms.touched && prenoms.errors?.required">
+                    Prenoms obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="adresse">Adresse*</label>
+                <input
+                    name="adresse"
+                    [ngClass]="{ 'is-invalid': adresse.touched && adresse.errors?.required }"
+                    #adresse="ngModel"
+                    [(ngModel)]="updateClient.adresse"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="adresse.touched && adresse.errors?.required">
+                    Adresse obligatoire
+                </mat-error>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formEdit.invalid"
+            class="btn btn-outline-dark"
+            (click)="updateTheClient(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>

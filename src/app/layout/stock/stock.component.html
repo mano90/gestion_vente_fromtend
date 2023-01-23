@@ -1,0 +1,414 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Stock'" [icon]="'fa-linode'"></app-page-header>
+    <div class="container-fluid">
+        <div class="row"></div>
+        <div class="col-md-12">
+            <div class="card bg-light mb-3">
+                <div class="card-header">Recherche avancée</div>
+
+                <div class="card-body">
+                    <form #formSearch="ngForm">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="">Reference du produit</label>
+                                        <mat-form-field>
+                                            <mat-select>
+                                                <mat-select-filter
+                                                    [placeholder]="'Filtre'"
+                                                    [displayMember]="'reference'"
+                                                    [array]="listeReference"
+                                                    (filteredReturn)="referenceFiltre = $event"
+                                                ></mat-select-filter>
+                                                <mat-option
+                                                    *ngFor="let item of referenceFiltre"
+                                                    (click)="pasteNomProduit(item.reference, item.nom)"
+                                                    [value]="item"
+                                                >
+                                                    {{ item.reference }}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                                <input
+                                    type="hidden"
+                                    name="referenceSearch"
+                                    #referenceSearch="ngModel"
+                                    [(ngModel)]="search.referenceSearch"
+                                />
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="">Nom du produit</label>
+                                        <input
+                                            type="text"
+                                            name="nomSearch"
+                                            #nomSearch="ngModel"
+                                            [(ngModel)]="search.nomSearch"
+                                            class="form-control"
+                                            readonly
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="">Type de produit</label>
+                                        <select
+                                            name="typeProduitSearch"
+                                            #typeProduitSearch="ngModel"
+                                            [(ngModel)]="search.typeProduitSearch"
+                                            class="form-control"
+                                        >
+                                            <option value="0">Produit périssable</option>
+                                            <option value="1">Matériel</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3"></div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Date début d'entrée</label>
+                                        <input
+                                            type="date"
+                                            #debutSearch="ngModel"
+                                            [(ngModel)]="search.debutSearch"
+                                            name="debutSearch"
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="">Date fin d'entrée</label>
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            name="finSearch"
+                                            #finSearch="ngModel"
+                                            [(ngModel)]="search.finSearch"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-3"></div>
+                                <div class="col-md-2"></div>
+
+                                <button type="submit" (click)="advanceSearch()" class="btn btn-primary btn-lg col-md-7">
+                                    Rechercher
+                                </button>
+                                <div class="col-md-3"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <br /><br /><br />
+        <!-- <div class="row">
+            <button class="col-md-12 btn btn-lg btn-outline-success" (click)="open(modalNewStock)">Nouveau</button>
+        </div> -->
+        <mat-form-field appearance="standard">
+            <mat-label>Filtre</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input />
+        </mat-form-field>
+
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>Id</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    {{ element.id }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="nom">
+                <th mat-header-cell *matHeaderCellDef>Nom</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    {{ element.nom }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="dateEntree">
+                <th mat-header-cell *matHeaderCellDef>Date d'entrée</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    {{ element.dateEntree | date: 'dd-MM-y' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantite">
+                <th mat-header-cell *matHeaderCellDef>Quantité</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    {{ element.quantite | formatNumber }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="datePeremption">
+                <th mat-header-cell *matHeaderCellDef>Date de pérmeption</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    {{ element.datePeremption | date: 'dd-MM-y' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td
+                    [ngClass]="{
+                        fast: element.notification == 2,
+                        slow: element.notification == 1
+                    }"
+                    mat-cell
+                    *matCellDef="let element"
+                >
+                    <button
+                        *ngIf="element.reste == element.quantite"
+                        (click)="deleteStock(element.id)"
+                        class="btn btn-danger"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Supprimer"
+                    >
+                        <i class="fa fa-trash text-white"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="4">Pas de valeur trouvée pour "{{ input.value }}"</td>
+            </tr>
+        </table>
+        <mat-paginator class="mat-elevation-z8" [pageSizeOptions]="[10, 20, 50, 100]"></mat-paginator>
+    </div>
+</div>
+<ng-template #modalAjout let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Nouveau</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAjout="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    [ngClass]="{ 'is-invalid': reference.touched && reference.errors?.required }"
+                    name="reference"
+                    #reference="ngModel"
+                    [(ngModel)]="newProduct.reference"
+                    type="text"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="reference.touched && reference.errors?.required">
+                    Reference obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="newProduct.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prix">Prix*</label>
+                <input
+                    #prix="ngModel"
+                    [ngClass]="{
+                        'is-invalid': (prix.touched && prix.errors?.required) || (prix.touched && prix.errors?.pattern)
+                    }"
+                    name="prix"
+                    type="number"
+                    pattern="[0-9]+"
+                    [(ngModel)]="newProduct.prix"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.required">
+                    Prix obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.pattern">
+                    Prix doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="typeProduit">Type de produit*</label>
+                <select
+                    name="typeProduit"
+                    [ngClass]="{ 'is-invalid': typeProduit.touched && typeProduit.errors?.required }"
+                    #typeProduit="ngModel"
+                    [(ngModel)]="newProduct.typeProduit"
+                    class="form-control"
+                >
+                    <option [ngValue]="false">Produit périssable</option>
+                    <option [ngValue]="true">Matériel</option>
+                </select>
+                <mat-error class="error-message" *ngIf="typeProduit.touched && typeProduit.errors?.required">
+                    Type de produit obligatoire
+                </mat-error>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formAjout.invalid"
+            class="btn btn-outline-dark"
+            (click)="addProduit(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+<!-- 
+<ng-template #modalNewStock let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Ajouter le stock</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formStock="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    [(ngModel)]="addStock.referebnce"
+                    name="reference"
+                    #reference="ngModel"
+                    type="text"
+                    class="form-control"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input type="text" [(ngModel)]="addStock.nom" name="nom" #nom="ngModel" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="">Date d'entrée</label>
+                <input
+                    type="date"
+                    name="dateEntree"
+                    #dateEntree="ngModel"
+                    [(ngModel)]="addStock.dateEntree"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid': dateEntree.touched && dateEntree.errors?.required
+                    }"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="dateEntree.touched && dateEntree.errors?.required">
+                    Date d'entrée obligatoire
+                </mat-error>
+            </div>
+            <div class="form-group">
+                <label for="">Quantité</label>
+                <input
+                    type="number"
+                    pattern="[0-9]+"
+                    name="quantite"
+                    #quantite="ngModel"
+                    [(ngModel)]="addStock.quantite"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid':
+                            (quantite.touched && quantite.errors?.required) ||
+                            (quantite.touched && quantite.errors?.pattern)
+                    }"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="quantite.touched && quantite.errors?.required">
+                    Quantité obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="quantite.touched && quantite.errors?.pattern">
+                    La quantité doit être positif
+                </mat-error>
+            </div>
+            <div class="form-group">
+                <label for="datePeremption">Date de péremption</label>
+                <input
+                    type="date"
+                    name="datePeremption"
+                    #datePeremption="ngModel"
+                    [(ngModel)]="addStock.datePeremption"
+                    [ngClass]="{
+                        'is-invalid': datePeremption.touched && datePeremption.errors?.required
+                    }"
+                    class="form-control"
+                    required
+                />
+            </div>
+
+            <mat-error
+                class="error-message"
+                *ngIf="compareDates(addStock.dateEntree, addStock.datePeremption) == false"
+            >
+                La date d'entrée doit être antérieure à la date de péremption
+            </mat-error>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formStock.invalid || compareDates(addStock.dateEntree, addStock.datePeremption) == false"
+            class="btn btn-outline-dark"
+            (click)="addToStock(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template> -->
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>

@@ -1,0 +1,206 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Facture'" [icon]="'fa-print'"></app-page-header>
+    <div class="container-fluid hidePrint">
+        <mat-form-field appearance="standard">
+            <mat-label>Filtre</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input />
+        </mat-form-field>
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let element">{{ element.date | date: 'dd-MM-y hh:mm' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef>Client</th>
+                <td mat-cell *matCellDef="let element">
+                    <ng-container *ngIf="element.client; else elseTemplate">
+                        {{ element.client.nom }} {{ element.client.prenoms }}
+                    </ng-container>
+                    <ng-template #elseTemplate>
+                        Anonyme
+                    </ng-template>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="montant">
+                <th mat-header-cell *matHeaderCellDef>Montant</th>
+                <td mat-cell *matCellDef="let element">{{ element.montant | formatMoney }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button
+                        *ngIf="element.client"
+                        (click)="openModalFacture(element.date, element.client.id)"
+                        class="btn btn-success"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Voir"
+                    >
+                        <i class="fa fa-eye text-white"></i>
+                    </button>
+                    <button
+                        *ngIf="!element.client"
+                        (click)="openModalFacture(element.date, null)"
+                        class="btn btn-success"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Voir"
+                    >
+                        <i class="fa fa-eye text-white"></i>
+                    </button>
+                    &nbsp;&nbsp;
+
+                    <button
+                        *ngIf="element.client"
+                        (mouseover)="previewPDF(element.date, element.client.id)"
+                        (click)="printPDF(element.date, element.client.id)"
+                        class="btn btn-primary"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Imprimer"
+                    >
+                        <i class="fa fa-print"></i>
+                    </button>
+
+                    <button
+                        *ngIf="!element.client"
+                        (mouseover)="previewPDF(element.date, null)"
+                        (click)="printPDF(element.date, null)"
+                        class="btn btn-primary"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Imprimer"
+                    >
+                        <i class="fa fa-print"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <mat-paginator
+            class="mat-elevation-z8"
+            [pageSizeOptions]="[10, 20, 50, 100]"
+            aria-label="Select page of users"
+        ></mat-paginator>
+    </div>
+    <br />
+    <br />
+    <div class="container-fluid preview">
+        <h1 class="disabled hiddenPrint">Prévisualisation</h1>
+        <h1>Liste des Achats</h1>
+
+        <ng-container *ngIf="listeAchat">
+            <b> Date: {{ dateAchat | date: 'EEEE d MMMM y h:mm a':undefined:'fr' }} </b> <br />
+
+            <ng-container *ngIf="listeAchat[0].client">
+                <b>Client:</b> {{ listeAchat[0].client.nom }} {{ listeAchat[0].client.prenoms }}
+                <ng-container *ngIf="listeAchat[0].client.adresse">
+                    <br />
+                    <b>Adresse:</b>
+                    {{ listeAchat[0].client.adresse }}
+                </ng-container>
+            </ng-container>
+            <!-- <ng-template #elseTemplate> <b>Client:</b> Anonyme </ng-template> -->
+        </ng-container>
+        <br /><br /><br />
+        <table>
+            <thead>
+                <th>Désignation</th>
+                <th>Nombre</th>
+                <th>Prix unitaire</th>
+                <th>Total à payer</th>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let item of listeAchat">
+                    <tr>
+                        <td>
+                            {{ item.reference.nom }}
+                        </td>
+
+                        <td>
+                            {{ item.quantite | formatNumber }}
+                        </td>
+
+                        <td>
+                            {{ item.total / item.quantite | formatMoney }}
+                        </td>
+
+                        <td>
+                            {{ item.total | formatMoney }}
+                        </td>
+                    </tr>
+                </ng-container>
+                <tr style="border-top: 1px dotted rgb(100, 97, 97);">
+                    <td></td>
+                    <td></td>
+                    <td><b>Montant Total</b></td>
+                    <td>{{ totalAchat | formatMoney }}</td>
+                </tr>
+            </tbody>
+        </table>
+        Arreté à la somme de {{ montantTotalLettre }} Ariary ({{ totalAchat | formatMoney }})
+    </div>
+</div>
+
+<ng-template #modalFacture let-modal>
+    <div class="modal-header">
+        <h1 class="modal-title">Liste</h1>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <table>
+            <thead>
+                <th>Produit</th>
+                <th>Nom</th>
+                <th>Nombre</th>
+                <th>Prix unitaire</th>
+                <th>Total à payer</th>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let item of listeAchat">
+                    <tr>
+                        <td>
+                            {{ item.reference.nom }}
+                        </td>
+                        <td>
+                            <ng-container *ngIf="item.client; else elseTemplate">
+                                {{ item.client.nom }} {{ item.client.prenoms }}
+                            </ng-container>
+                            <ng-template #elseTemplate>
+                                Anonyme
+                            </ng-template>
+                        </td>
+
+                        <td>
+                            {{ item.quantite | formatNumber }}
+                        </td>
+
+                        <td>
+                            {{ item.total / item.quantite | formatMoney }}
+                        </td>
+
+                        <td>
+                            {{ item.total | formatMoney }}
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <button disabled (click)="print()" type="button" class="btn btn-dark">
+            Imprimer Ticket
+        </button>
+    </div>
+</ng-template>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>

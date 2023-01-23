@@ -1,0 +1,797 @@
+<div [@routerTransition]>
+    <app-page-header [heading]="'Produits'" [icon]="'fa-server'"></app-page-header>
+    <div class="container-fluid">
+        <div class="row">
+            <button class="col-md-12 btn btn-lg btn-outline-success" (click)="open(modalAjout)">Nouveau</button>
+        </div>
+    </div>
+
+    <div class="container-fluid" *ngIf="slideGraphique == false">
+        <mat-form-field appearance="standard">
+            <mat-label>Filtre</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input />
+        </mat-form-field>
+
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="reference">
+                <th mat-header-cell *matHeaderCellDef>Reference</th>
+                <td mat-cell *matCellDef="let element">{{ element.reference }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nom">
+                <th mat-header-cell *matHeaderCellDef>Nom</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.nom }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="prix">
+                <th mat-header-cell *matHeaderCellDef>Prix</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.prix | formatMoney }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="typeProduit">
+                <th mat-header-cell *matHeaderCellDef>Type de produit</th>
+                <td mat-cell *matCellDef="let element">
+                    <div *ngIf="element.typeProduit == 0; else autreProduit">
+                        Produit périssable
+                    </div>
+                    <ng-template #autreProduit>
+                        <div>
+                            Matériel
+                        </div>
+                    </ng-template>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="stock">
+                <th mat-header-cell *matHeaderCellDef>En stock</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.stock | formatNumber }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="nombrePacket">
+                <th mat-header-cell *matHeaderCellDef>Nombre par paquet</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.nombrePacket | formatNumber }}
+                </td>
+            </ng-container>
+            <ng-container matColumnDef="carton">
+                <th mat-header-cell *matHeaderCellDef>Nombre par carton</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.carton | formatNumber }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button
+                        (click)="
+                            getDataToUpdate(
+                                element.reference,
+                                element.nom,
+                                element.prix,
+                                element.typeProduit,
+                                element.nombrePacket,
+                                element.carton
+                            )
+                        "
+                        class="btn btn-warning"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Modifier"
+                    >
+                        <i class="fa fa-edit text-white"></i>
+                    </button>
+                    &nbsp;&nbsp;
+
+                    <button
+                        (click)="getDataToStock(element.reference, element.nom, element.typeProduit)"
+                        class="btn btn-primary"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Ajouter le stock"
+                    >
+                        <i class="fa fa-linode text-white"></i>
+                    </button>
+                    &nbsp;&nbsp;
+                    <button
+                        *ngIf="element.hasStock == false"
+                        (click)="deleteProduit(element.reference, element.path)"
+                        class="btn btn-danger"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Supprimer"
+                    >
+                        <i class="fa fa-trash text-white"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="4">Pas de valeur trouvée pour "{{ input.value }}"</td>
+            </tr>
+        </table>
+        <mat-paginator class="mat-elevation-z8" [pageSizeOptions]="[10, 20, 50, 100]"></mat-paginator>
+    </div>
+
+    <div class="items" *ngIf="slideGraphique == true">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12 col-md-12">
+                    <mat-form-field appearance="standard">
+                        <mat-label>Filtre</mat-label>
+                        <input
+                            matInput
+                            [(ngModel)]="filterGraphique"
+                            name="filterGraphique"
+                            placeholder="Ex. ium"
+                            #input
+                        />
+                    </mat-form-field>
+                </div>
+
+                <ng-container *ngFor="let element of arrayProducts | filterGraphique: filterGraphique">
+                    <div class="col-12 col-sm-3 col-lg-2 col-md-2 col-xl-2">
+                        <span class="box box-1" (click)="showButtons(element)">
+                            <span class="cover">
+                                <img
+                                    src="http://localhost:3000/produit/readFile/{{ element.path }}"
+                                    width="150px"
+                                    height="150px"
+                                />
+                            </span>
+
+                            <div class="cube" [ngClass]="{ blinking: element.stock < 10 }">
+                                <div class="flippety">
+                                    <div>
+                                        Reference:
+                                        <br />
+                                        {{ element.reference }} <br />
+                                        Nom: <br />
+                                        {{ element.nom }} <br />
+                                        Prix: <br />
+                                        {{ element.prix | formatMoney }} <br />
+                                    </div>
+                                </div>
+                                <div class="flop">
+                                    <div>
+                                        Type de produit: <br />
+                                        <div *ngIf="element.typeProduit == 0; else autreProduit">
+                                            Produit périssable
+                                        </div>
+                                        <ng-template #autreProduit>
+                                            <div>
+                                                Matériel
+                                            </div>
+                                        </ng-template>
+                                        <br />
+                                        Stock: {{ element.stock | formatNumber }} <br />
+                                        Packet: {{ element.nombrePacket | formatNumber }} <br />
+                                        Carton: {{ element.carton | formatNumber }}
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="square-jelly-box" [fullScreen]="true"
+    ><p style="color: white;">Loading...</p></ngx-spinner
+>
+<ng-template #modalAjout let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Nouveau</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formAjout="ngForm">
+            <!-- [formGroup]="fileUploadForm" -->
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    [ngClass]="{ 'is-invalid': reference.touched && reference.errors?.required }"
+                    name="reference"
+                    #reference="ngModel"
+                    [(ngModel)]="newProduct.reference"
+                    type="text"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="reference.touched && reference.errors?.required">
+                    Reference obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group form-row">
+                <!-- <form [formGroup]="fileUploadForm"> -->
+                <div class="col-sm-12">
+                    <div>
+                        <h6 class="head-title margin-top-8"><span>Selectionnez une image</span></h6>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="custom-file">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            class="custom-file-input"
+                            name="uploadedImage"
+                            (change)="selectFile($event)"
+                        />
+                        <label class="custom-file-label" for="customFile">
+                            <ng-container *ngIf="selectedFiles; else templateElse">
+                                {{ selectedFiles.item(0).name }}
+                            </ng-container>
+                            <ng-template #templateElse>
+                                Choisissez une image
+                            </ng-template>
+                        </label>
+                    </div>
+                </div>
+                <!-- </form> -->
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="newProduct.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prix">Prix*</label>
+                <input
+                    #prix="ngModel"
+                    [ngClass]="{
+                        'is-invalid': (prix.touched && prix.errors?.required) || (prix.touched && prix.errors?.pattern)
+                    }"
+                    name="prix"
+                    type="number"
+                    pattern="[0-9]+"
+                    [(ngModel)]="newProduct.prix"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.required">
+                    Prix obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.pattern">
+                    Prix doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="typeProduit">Type de produit*</label>
+                <select
+                    name="typeProduit"
+                    [ngClass]="{ 'is-invalid': typeProduit.touched && typeProduit.errors?.required }"
+                    #typeProduit="ngModel"
+                    [(ngModel)]="newProduct.typeProduit"
+                    class="form-control"
+                    required
+                >
+                    <option [ngValue]="false">Produit périssable</option>
+                    <option [ngValue]="true">Matériel</option>
+                </select>
+                <mat-error class="error-message" *ngIf="typeProduit.touched && typeProduit.errors?.required">
+                    Type de produit obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="nombrePacket">Nombre par paquet*</label>
+                <input
+                    name="nombrePacket"
+                    [ngClass]="{
+                        'is-invalid':
+                            (nombrePacket.touched && nombrePacket.errors?.required) ||
+                            (nombrePacket.touched && nombrePacket.errors?.pattern)
+                    }"
+                    type="number"
+                    #nombrePacket="ngModel"
+                    [(ngModel)]="newProduct.nombrePacket"
+                    pattern="[0-9]+"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.required">
+                    Nombre par paquet obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.pattern">
+                    Nombre par paquet doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="carton">Nombre par carton*</label>
+                <input
+                    name="carton"
+                    [ngClass]="{
+                        'is-invalid':
+                            (carton.touched && carton.errors?.required) || (carton.touched && carton.errors?.pattern)
+                    }"
+                    type="number"
+                    #carton="ngModel"
+                    [(ngModel)]="newProduct.carton"
+                    pattern="[0-9]+"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.required">
+                    Nombre par carton obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.pattern">
+                    Nombre par carton doit être positif
+                </mat-error>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <!--  -->
+
+        <button
+            [disabled]="formAjout.invalid || !selectedFiles"
+            type="button"
+            class="btn btn-outline-dark"
+            (click)="addProduit(); modal.close()"
+        >
+            <!--  -->
+
+            Save
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #modalEdit let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Modifier</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formEdit="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    name="reference"
+                    #reference="ngModel"
+                    [(ngModel)]="updateProduit.reference"
+                    type="text"
+                    class="form-control"
+                    readonly
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="updateProduit.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prix">Prix*</label>
+                <input
+                    #prix="ngModel"
+                    [ngClass]="{
+                        'is-invalid': (prix.touched && prix.errors?.required) || (prix.touched && prix.errors?.pattern)
+                    }"
+                    name="prix"
+                    type="number"
+                    pattern="[0-9]+"
+                    [(ngModel)]="updateProduit.prix"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.required">
+                    Prix obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.pattern">
+                    Prix doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="typeProduit">Type de produit*</label>
+                <select
+                    name="typeProduit"
+                    [ngClass]="{ 'is-invalid': typeProduit.touched && typeProduit.errors?.required }"
+                    #typeProduit="ngModel"
+                    [(ngModel)]="updateProduit.typeProduit"
+                    class="form-control"
+                    required
+                >
+                    <option [ngValue]="false">Produit périssable</option>
+                    <option [ngValue]="true">Matériel</option>
+                </select>
+                <mat-error class="error-message" *ngIf="typeProduit.touched && typeProduit.errors?.required">
+                    Type de produit obligatoire
+                </mat-error>
+            </div>
+            <div class="form-group">
+                <label for="nombrePacket">Nombre par paquet*</label>
+                <input
+                    name="nombrePacket"
+                    [ngClass]="{
+                        'is-invalid':
+                            (nombrePacket.touched && nombrePacket.errors?.required) ||
+                            (nombrePacket.touched && nombrePacket.errors?.pattern)
+                    }"
+                    #nombrePacket="ngModel"
+                    [(ngModel)]="updateProduit.nombrePacket"
+                    class="form-control"
+                    pattern="[0-9]+"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.required">
+                    Nombre par paquet obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.pattern">
+                    Nombre par paquet doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="carton">Nombre par carton*</label>
+                <input
+                    name="carton"
+                    [ngClass]="{
+                        'is-invalid':
+                            (carton.touched && carton.errors?.required) || (carton.touched && carton.errors?.pattern)
+                    }"
+                    #carton="ngModel"
+                    [(ngModel)]="updateProduit.carton"
+                    class="form-control"
+                    pattern="[0-9]+"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.required">
+                    Nombre par carton obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.pattern">
+                    Nombre par carton doit être positif
+                </mat-error>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formEdit.invalid"
+            class="btn btn-outline-dark"
+            (click)="updateTheProduct(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #modalEditGraphique let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Modifier</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formEditGraphique="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    name="reference"
+                    #reference="ngModel"
+                    [(ngModel)]="updateProduitGraphique.reference"
+                    type="text"
+                    class="form-control"
+                    readonly
+                />
+            </div>
+            <div class="form-group">
+                <label>Changer l'image</label>
+                <div>
+                    <input
+                        class="form-control"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        required
+                        (change)="selectFileEdit($event)"
+                    />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input
+                    #nom="ngModel"
+                    [ngClass]="{ 'is-invalid': nom.touched && nom.errors?.required }"
+                    name="nom"
+                    type="text"
+                    [(ngModel)]="updateProduitGraphique.nom"
+                    class="form-control"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="nom.touched && nom.errors?.required">
+                    Nom obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="prix">Prix*</label>
+                <input
+                    #prix="ngModel"
+                    [ngClass]="{
+                        'is-invalid': (prix.touched && prix.errors?.required) || (prix.touched && prix.errors?.pattern)
+                    }"
+                    name="prix"
+                    type="number"
+                    pattern="[0-9]+"
+                    [(ngModel)]="updateProduitGraphique.prix"
+                    class="form-control"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.required">
+                    Prix obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="prix.touched && prix.errors?.pattern">
+                    Prix doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="typeProduit">Type de produit*</label>
+                <select
+                    name="typeProduit"
+                    [ngClass]="{ 'is-invalid': typeProduit.touched && typeProduit.errors?.required }"
+                    #typeProduit="ngModel"
+                    [(ngModel)]="updateProduitGraphique.typeProduit"
+                    class="form-control"
+                    required
+                >
+                    <option [value]="false">Produit périssable</option>
+                    <option [value]="true">Matériel</option>
+                </select>
+                <mat-error class="error-message" *ngIf="typeProduit.touched && typeProduit.errors?.required">
+                    Type de produit obligatoire
+                </mat-error>
+            </div>
+            <div class="form-group">
+                <label for="nombrePacket">Nombre par paquet*</label>
+                <input
+                    name="nombrePacket"
+                    [ngClass]="{
+                        'is-invalid':
+                            (nombrePacket.touched && nombrePacket.errors?.required) ||
+                            (nombrePacket.touched && nombrePacket.errors?.pattern)
+                    }"
+                    #nombrePacket="ngModel"
+                    [(ngModel)]="updateProduitGraphique.nombrePacket"
+                    class="form-control"
+                    pattern="[0-9]+"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.required">
+                    Nombre par paquet obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="nombrePacket.touched && nombrePacket.errors?.pattern">
+                    Nombre par paquet doit être positif
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="carton">Nombre par carton*</label>
+                <input
+                    name="carton"
+                    [ngClass]="{
+                        'is-invalid':
+                            (carton.touched && carton.errors?.required) || (carton.touched && carton.errors?.pattern)
+                    }"
+                    #carton="ngModel"
+                    [(ngModel)]="updateProduitGraphique.carton"
+                    class="form-control"
+                    pattern="[0-9]+"
+                    required
+                />
+
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.required">
+                    Nombre par carton obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="carton.touched && carton.errors?.pattern">
+                    Nombre par carton doit être positif
+                </mat-error>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formEditGraphique.invalid"
+            class="btn btn-outline-dark"
+            (click)="updateTheProductGraphique(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #modalNewStock let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Ajouter le stock</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #formStock="ngForm">
+            <div class="form-group">
+                <label for="reference">Reference*</label>
+                <input
+                    [(ngModel)]="addStock.reference"
+                    name="reference"
+                    #stockReference="ngModel"
+                    type="text"
+                    class="form-control"
+                    readonly
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="nom">Nom*</label>
+                <input type="text" [(ngModel)]="addStock.nom" name="nom" #nom="ngModel" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="">Date d'entrée</label>
+                <input
+                    type="date"
+                    name="dateEntree"
+                    #dateEntree="ngModel"
+                    [(ngModel)]="addStock.dateEntree"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid': dateEntree.touched && dateEntree.errors?.required
+                    }"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="dateEntree.touched && dateEntree.errors?.required">
+                    Date d'entrée obligatoire
+                </mat-error>
+            </div>
+
+            <div class="form-group">
+                <label for="">Quantité</label>
+                <input
+                    type="number"
+                    pattern="[0-9]+"
+                    name="quantite"
+                    #quantite="ngModel"
+                    [(ngModel)]="addStock.quantite"
+                    class="form-control"
+                    [ngClass]="{
+                        'is-invalid':
+                            (quantite.touched && quantite.errors?.required) ||
+                            (quantite.touched && quantite.errors?.pattern)
+                    }"
+                    required
+                />
+                <mat-error class="error-message" *ngIf="quantite.touched && quantite.errors?.required">
+                    Quantité obligatoire
+                </mat-error>
+                <mat-error class="error-message" *ngIf="quantite.touched && quantite.errors?.pattern">
+                    La quantité doit être positif
+                </mat-error>
+            </div>
+
+            <div *ngIf="addStock.typeProduit === false">
+                <div class="form-group">
+                    <label for="datePeremption">Date de péremption</label>
+                    <input
+                        type="date"
+                        name="datePeremption"
+                        #datePeremption="ngModel"
+                        [(ngModel)]="addStock.datePeremption"
+                        [ngClass]="{
+                            'is-invalid': datePeremption.touched && datePeremption.errors?.required
+                        }"
+                        class="form-control"
+                        required
+                    />
+                </div>
+            </div>
+            <mat-error
+                class="error-message"
+                *ngIf="compareDates(addStock.dateEntree, addStock.datePeremption) == false"
+            >
+                La date d'entrée doit être antérieure à la date de péremption
+            </mat-error>
+        </form>
+    </div>
+
+    <div class="modal-footer">
+        <button
+            type="button"
+            [disabled]="formStock.invalid || compareDates(addStock.dateEntree, addStock.datePeremption) == false"
+            class="btn btn-outline-dark"
+            (click)="addToStock(); modal.close()"
+        >
+            Save
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #buttonsShow let-modal>
+    <div class="modal-body" style="text-align: center;">
+        <button
+            (click)="getDataToUpdateGraphique(); modal.dismiss()"
+            class="btn btn-warning"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Modifier"
+        >
+            <i class="fa fa-edit text-white"></i>
+        </button>
+        &nbsp;&nbsp;
+
+        <button
+            (click)="getDataToStockGraphique(); modal.dismiss()"
+            class="btn btn-primary"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Ajouter le stock"
+        >
+            <i class="fa fa-linode text-white"></i>
+        </button>
+        &nbsp;&nbsp;
+
+        <button
+            *ngIf="this.customGraphicItems.hasStock == false"
+            (click)="deleteProduitGraphique(); modal.dismiss()"
+            class="btn btn-danger"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Supprimer"
+        >
+            <i class="fa fa-trash text-white"></i>
+        </button>
+    </div>
+</ng-template>

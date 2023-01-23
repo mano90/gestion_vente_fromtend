@@ -1,0 +1,26 @@
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+
+import { AchatComponent } from './achat.component';
+
+describe('AchatComponent', () => {
+    let component: AchatComponent;
+    let fixture: ComponentFixture<AchatComponent>;
+
+    beforeEach(
+        waitForAsync(() => {
+            TestBed.configureTestingModule({
+                declarations: [AchatComponent]
+            }).compileComponents();
+        })
+    );
+
+    beforeEach(() => {
+        fixture = TestBed.createComponent(AchatComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
+});

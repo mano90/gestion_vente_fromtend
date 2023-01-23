@@ -1,0 +1,44 @@
+table {
+    width: 100%;
+}
+.mat-form-field {
+    font-size: 14px;
+    width: 100%;
+}
+// .fast {
+//     background-color: rgba(179, 46, 46, 0.384);
+// }
+
+// .slow {
+//     background-color: rgba(214, 211, 21, 0.384);
+// }
+
+.slow {
+    animation: slowBlinking 8.2s infinite;
+}
+.fast {
+    animation: fastBlinking 8.2s infinite;
+}
+@keyframes slowBlinking {
+    0% {
+        background-color: rgba(214, 211, 21, 0.5);
+    }
+    49% {
+        background-color: transparent;
+    }
+    100% {
+        background-color: rgba(214, 211, 21, 0.5);
+    }
+}
+
+@keyframes fastBlinking {
+    0% {
+        background-color: rgba(179, 46, 46, 0.5);
+    }
+    49% {
+        background-color: transparent;
+    }
+    100% {
+        background-color: rgba(179, 46, 46, 0.5);
+    }
+}
