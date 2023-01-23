@@ -1,0 +1,145 @@
+body {
+    font-family: Cambria, Palatino, 'Palatino Linotype', 'Palatino LT STD', Georgia, serif;
+    font-weight: 400px;
+    font-size: 20px;
+    color: #1d3c41;
+    background-color: #efefef;
+}
+.header-login {
+    line-height: 24px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.2);
+}
+
+.droite {
+    margin: 0px 80px;
+    float: right;
+    margin-top: 25px;
+}
+
+.text {
+    margin: 0px 10px;
+}
+
+.orange {
+    color: #ff7a00;
+}
+
+.clear {
+    clear: both;
+}
+
+ul {
+    list-style: none;
+}
+header {
+    padding: 30px 30px 10px 30px;
+    margin: 0px 20px 10px 20px;
+    position: relative;
+    display: block;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+header h1 {
+    font-family: 'BebasNeueRegular', 'Arial Narrow', Arial, sans-serif;
+    font-size: 35px;
+    position: relative;
+    color: rgba(26, 89, 120, 0.6);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+    padding: 0px 0px 20px 0px;
+    text-transform: uppercase;
+    margin: 0 auto;
+    border-bottom: 1px solid #02b8dd;
+}
+
+#contact-form {
+    font-size: 20px;
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.form-control {
+    height: 40px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+label {
+    font-size: 21px;
+}
+
+.box {
+    width: 500px;
+    margin: 20px auto 100px;
+}
+
+.button {
+    margin: 5px 0px 0px 250px;
+    border: 1px solid #ddd;
+    background: #ffa500;
+    color: #fff;
+    width: 200px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background: #333;
+    border-color: #ffa500;
+}
+a {
+    text-decoration: none;
+    color: #444;
+}
+
+/* Footer */
+
+footer {
+    position: fixed;
+    padding: 10px 10px 0px 10px;
+    bottom: 0;
+    width: 100%;
+    height: 150px;
+    background: #444;
+}
+
+footer h1 {
+    color: #fff;
+    text-align: center;
+    padding-top: 30px;
+}
+
+.copyright {
+    text-align: center;
+    font-weight: bold;
+    padding-top: 10px;
+    color: #777;
+}
+.user-avatar {
+    border: 1px solid rgb(138, 133, 133);
+    border-radius: 15px;
+}
+img {
+    position: relative;
+    margin-left: 40%;
+    margin-right: auto;
+}
+a {
+    margin-top: 10px;
+    font-size: 17px;
+    margin-right: 10px;
+}
+.MDP {
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 150px;
+}
+
+.error-message {
+    margin-top: 15px;
+}

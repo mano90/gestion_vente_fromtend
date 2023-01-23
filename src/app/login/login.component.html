@@ -1,0 +1,65 @@
+<div class="login-page" [@routerTransition]>
+    <div class="header-login">
+        <span class="text">Gestion</span>
+        <span class="droite"> </span>
+    </div>
+    <header>
+        <ul>
+            <h1>Gestion de stock</h1>
+        </ul>
+    </header>
+    <img class="user-avatar" src="assets/images/stock.png" width="150px" />
+
+    <div class="box">
+        <form
+            id="contact-form"
+            autocomplete="off"
+            role="form"
+            id="exampleForm"
+            #form="ngForm"
+            (ngSubmit)="submitFormLogin()"
+        >
+            <div class="row">
+                <label for="login">Login <span class="fa fa-user"></span></label>
+                <input
+                    type="text"
+                    #login="ngModel"
+                    [(ngModel)]="user.identifiant"
+                    required
+                    class="form-control"
+                    name="login"
+                    placeholder="Login"
+                    required
+                />
+
+                <label for="password">Mot de passe</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    #password="ngModel"
+                    [(ngModel)]="user.password"
+                    required
+                    name="password"
+                    placeholder="Mot de passe"
+                    required
+                />
+
+                <button [disabled]="!user.password || !user.identifiant" type="submit" class="btn btn-success">
+                    <span class="fa fa-user"></span>Se connecter
+                </button>
+
+                &nbsp;
+                <span
+                    ><I><U class="MDP">Mot de passe oublié</U></I></span
+                >
+            </div>
+            <div *ngIf="error != ''" class="error-message alert alert-danger">
+                {{ error }}
+            </div>
+        </form>
+    </div>
+    <footer>
+        <h1>Gestion<span class="st">.</span></h1>
+        <div class="copyright">Copyright © 2020.</div>
+    </footer>
+</div>
